@@ -5,7 +5,7 @@
  * Copyright(c) TJ Holowaychuk <tj@vision-media.ca>
  * (MIT Licensed)
  */
- 
+
 /**
  * Module dependencies.
  */
@@ -41,13 +41,13 @@ var testcount = 0;
 /**
  * Whitelist of tests to run.
  */
- 
+
 var only = [];
 
 /**
  * Boring output.
  */
- 
+
 var boring = false;
 
 /**
@@ -405,8 +405,8 @@ assert.response = function(server, req, res, msg){
 
 	var check = function(){
             if (--server.__pending === 0) {
-		if (testsuite) {
-		    testsuite.teardown();	
+		if (testsuite && testsuite.teardown) {
+		    testsuite.teardown();
 		}
 		server.close();
 		server.__listening = false;
@@ -552,7 +552,7 @@ function reportCoverage(cov) {
         if (name.match(/\.js$/)) {
             var file = cov[name];
             if ((file.coverage < 100) || !quiet) {
-               print('\n   [bold]{' + name + '}:'); 
+               print('\n   [bold]{' + name + '}:');
                print(file.source);
                sys.print('\n');
             }
@@ -567,11 +567,11 @@ function reportCoverage(cov) {
  */
 
 function populateCoverage(cov) {
-    cov.LOC = 
+    cov.LOC =
     cov.SLOC =
     cov.totalFiles =
     cov.totalHits =
-    cov.totalMisses = 
+    cov.totalMisses =
     cov.coverage = 0;
     for (var name in cov) {
         var file = cov[name];
@@ -617,7 +617,7 @@ function coverage(data, val) {
     for (var i = 0, len = data.length; i < len; ++i) {
         if (data[i] !== undefined && data[i] == val) ++n;
     }
-    return n;  
+    return n;
 }
 
 /**
@@ -660,15 +660,19 @@ function run(files) {
     }
     var suite = null;
     var testfiles = files.filter(function(val, index, array) {
-	 if (val.match(/testsuite\.js/)) {
+	 if (val.match(/testsuite\.js$/)) {
 	     suite = val;
 	     return false;
-	 } 
+	 }
          return true;
     });
     if (suite) {
 	testsuite = require(suite);
-	testsuite.setup(function(){ runFiles(testfiles); });
+        if (testsuite.setup) {
+            testsuite.setup(function(){ runFiles(testfiles); });
+        } else {
+            runFiles(testfiles);
+        }
     } else {
 	runFiles(testfiles);
     }
@@ -793,7 +797,7 @@ function runSuite(title, tests, fn) {
                                     clearTimeout(id);
                                     next();
                                 });
-                            } 
+                            }
                         });
                     } else {
                         test(function(fn){
